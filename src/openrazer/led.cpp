@@ -111,52 +111,77 @@ bool Led::hasFx(const QString &fxStr)
 
 bool Led::hasFx(::razer_test::RazerEffect fx)
 {
-    QString fxStr;
-    switch (fx) {
-    case ::razer_test::RazerEffect::Off:
-        fxStr = "off";
-        break;
-    case ::razer_test::RazerEffect::On:
-        fxStr = "on";
-        break;
-    case ::razer_test::RazerEffect::Static:
-        fxStr = "static";
-        break;
-    case ::razer_test::RazerEffect::Breathing:
-        fxStr = "breathing";
-        break;
-    case ::razer_test::RazerEffect::BreathingDual:
-        fxStr = "breathing_dual";
-        break;
-    case ::razer_test::RazerEffect::BreathingRandom:
-        fxStr = "breathing_random";
-        break;
-    case ::razer_test::RazerEffect::Blinking:
-        fxStr = "blinking";
-        break;
-    case ::razer_test::RazerEffect::Spectrum:
-        fxStr = "spectrum";
-        break;
-    case ::razer_test::RazerEffect::Wave:
-        fxStr = "wave";
-        break;
-    case ::razer_test::RazerEffect::Reactive:
-        fxStr = "reactive";
-        break;
-    }
-    return hasFx(fxStr);
+    const QHash<::razer_test::RazerEffect, QString> EffectToString {
+        { ::razer_test::RazerEffect::Off, "off" },
+        { ::razer_test::RazerEffect::On, "on" },
+        { ::razer_test::RazerEffect::Static, "static" },
+        { ::razer_test::RazerEffect::Blinking, "blinking" },
+        { ::razer_test::RazerEffect::Breathing, "breathing" },
+        { ::razer_test::RazerEffect::BreathingDual, "breathing_dual" },
+        { ::razer_test::RazerEffect::BreathingRandom, "breathing_random" },
+        { ::razer_test::RazerEffect::Spectrum, "spectrum" },
+        { ::razer_test::RazerEffect::Wave, "wave" },
+        { ::razer_test::RazerEffect::Reactive, "reactive" }
+    };
+    return hasFx(EffectToString.value(fx));
 }
 
 ::razer_test::RazerEffect Led::getCurrentEffect()
 {
-    // TODO Needs OpenRazer implementation
-    return ::razer_test::RazerEffect::Spectrum;
+    const QHash<QString, ::razer_test::RazerEffect> StringToEffect {
+        { "none", ::razer_test::RazerEffect::Off },
+        { "static", ::razer_test::RazerEffect::Static },
+        { "blinking", ::razer_test::RazerEffect::Blinking },
+        { "pulsate", ::razer_test::RazerEffect::Breathing },
+        { "breathSingle", ::razer_test::RazerEffect::Breathing },
+        { "breathDual", ::razer_test::RazerEffect::BreathingDual },
+        { "breathRandom", ::razer_test::RazerEffect::BreathingRandom },
+        { "spectrum", ::razer_test::RazerEffect::Spectrum },
+        { "wave", ::razer_test::RazerEffect::Wave },
+        { "reactive", ::razer_test::RazerEffect::Reactive },
+        // TODO starlightSingle, starlightDual, starlightRandom
+        // TODO breathTriple, ripple, rippleRandomColour
+    };
+
+    if (d->device->d->hasCapabilityInternal(d->interface, "get" + d->lightingLocationMethod + "Effect")) {
+        QDBusReply<QString> reply = d->ledIface()->call("get" + d->lightingLocationMethod + "Effect");
+        if (reply.isValid()) {
+            return StringToEffect.value(reply.value());
+        } else {
+            printDBusError(reply.error(), Q_FUNC_INFO);
+            throw DBusException(reply.error());
+        }
+    } else if (d->device->d->hasCapabilityInternal(d->interface, "get" + d->lightingLocationMethod + "Active")) {
+        QDBusReply<bool> reply = d->ledIface()->call("get" + d->lightingLocationMethod + "Active");
+        if (reply.isValid()) {
+            return reply.value() ? ::razer_test::RazerEffect::On : ::razer_test::RazerEffect::Off;
+        } else {
+            printDBusError(reply.error(), Q_FUNC_INFO);
+            throw DBusException(reply.error());
+        }
+    } else {
+        qWarning("libopenrazer: Unhandled branch in getCurrentEffect! Returning default value Off.");
+        return ::razer_test::RazerEffect::Off;
+    }
 }
 
 QVector<::razer_test::RGB> Led::getCurrentColors()
 {
-    // TODO Needs OpenRazer implementation
-    return { { 0, 255, 0 }, { 255, 0, 0 }, { 0, 0, 255 } };
+    // Devices with only get*Active & set*Active don't have get*EffectColors
+    if (!d->device->d->hasCapabilityInternal(d->interface, "get" + d->lightingLocationMethod + "EffectColors")) {
+        return { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+    }
+    QDBusReply<QByteArray> reply;
+    reply = d->ledIface()->call("get" + d->lightingLocationMethod + "EffectColors");
+    if (reply.isValid()) {
+        auto val = reply.value();
+        return { { static_cast<uchar>(val[0]), static_cast<uchar>(val[1]), static_cast<uchar>(val[2]) },
+                 { static_cast<uchar>(val[3]), static_cast<uchar>(val[4]), static_cast<uchar>(val[5]) },
+                 { static_cast<uchar>(val[6]), static_cast<uchar>(val[7]), static_cast<uchar>(val[8]) } };
+    } else {
+        printDBusError(reply.error(), Q_FUNC_INFO);
+        throw DBusException(reply.error());
+    }
 }
 
 ::razer_test::RazerLedId Led::getLedId()
