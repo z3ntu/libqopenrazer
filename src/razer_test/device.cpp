@@ -150,6 +150,18 @@ bool Device::setDPI(::razer_test::RazerDPI dpi)
     return handleDBusReply(reply, Q_FUNC_INFO);
 }
 
+bool Device::setDPIStages(QVector<::razer_test::RazerDPI> dpiStages)
+{
+    // TODO
+    return false;
+}
+
+QVector<::razer_test::RazerDPI> Device::getDPIStages()
+{
+    // TODO
+    return QVector<::razer_test::RazerDPI>();
+}
+
 ushort Device::maxDPI()
 {
     QDBusReply<ushort> reply = d->deviceIface()->call("getMaxDPI");

@@ -92,6 +92,8 @@ void DevicePrivate::setupCapabilities()
         supportedFeatures.append("keyboard_layout");
     if (hasCapabilityInternal("razer.device.dpi", "setDPI"))
         supportedFeatures.append("dpi");
+    if (hasCapabilityInternal("razer.device.dpi", "setDPIStages"))
+        supportedFeatures.append("dpi_stages");
     if (hasCapabilityInternal("razer.device.misc", "setPollRate"))
         supportedFeatures.append("poll_rate");
     if (hasCapabilityInternal("razer.device.lighting.chroma", "setCustom"))
@@ -253,6 +255,18 @@ bool Device::setDPI(::razer_test::RazerDPI dpi)
         printDBusError(reply.error(), Q_FUNC_INFO);
         throw DBusException(reply.error());
     }
+}
+
+bool Device::setDPIStages(QVector<::razer_test::RazerDPI> dpiStages)
+{
+    QDBusReply<void> reply = d->deviceDpiIface()->call("setDPIStages", QVariant::fromValue(dpiStages));
+    return handleVoidDBusReply(reply, Q_FUNC_INFO);
+}
+
+QVector<::razer_test::RazerDPI> Device::getDPIStages()
+{
+    QDBusReply<QVector<::razer_test::RazerDPI>> reply = d->deviceDpiIface()->call("getDPIStages");
+    return handleDBusReply(reply, Q_FUNC_INFO);
 }
 
 ushort Device::maxDPI()
