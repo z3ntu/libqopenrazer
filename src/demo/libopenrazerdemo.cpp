@@ -31,45 +31,61 @@ int main(int argc, char *argv[])
     manager->syncEffects(false);
 
     foreach (const QDBusObjectPath &devicePath, manager->getDevices()) {
-        qDebug() << "-----------------";
+        qDebug() << "=========================";
         libopenrazer::Device *device = manager->getDevice(devicePath);
         qDebug() << "Devicename:" << device->getDeviceName();
         qDebug() << "Firmware version:" << device->getFirmwareVersion();
-        try { // fake driver doesn't have device_mode
-            qDebug() << "Devicemode:" << device->getDeviceMode();
-        } catch (QException &e) {
-        }
+        // try { // fake driver doesn't have device_mode
+        //     qDebug() << "Devicemode:" << device->getDeviceMode();
+        // } catch (QException &e) {
+        // }
         // device->setDeviceMode(0x03, 0x00);
         // qDebug() << "Devicemode:" << device->getDeviceMode();
         qDebug() << "Serial: " << device->getSerial();
 
         if (device->hasFeature("dpi")) {
-            qDebug() << "DPI";
-            razer_test::RazerDPI dpi = device->getDPI();
-            qDebug() << dpi.dpi_x << dpi.dpi_y;
+            qDebug() << "-----------";
+            qDebug() << "Current DPI:" << device->getDPI();
             device->setDPI({ 500, 500 });
-            dpi = device->getDPI();
-            qDebug() << dpi.dpi_x << dpi.dpi_y;
-            qDebug() << "maxdpi: " << device->maxDPI();
+            qDebug() << "Changed DPI:" << device->getDPI();
+            qDebug() << "Max DPI: " << device->maxDPI();
+        }
+
+        if (device->hasFeature("dpi_stages")) {
+            qDebug() << "-----------";
+            qDebug() << "Current DPI stages:" << device->getDPIStages();
+            device->setDPIStages({ { 400, 500 }, { 600, 700 }, { 800, 900 } });
+            qDebug() << "Changed DPI stages:" << device->getDPIStages();
         }
 
         if (device->hasFeature("poll_rate")) {
-            qDebug() << "Set_pollrate:" << device->setPollRate(125);
-            qDebug() << "Pollrate:" << device->getPollRate();
-            qDebug() << "Set_pollrate:" << device->setPollRate(1000);
-            qDebug() << "Pollrate:" << device->getPollRate();
+            qDebug() << "-----------";
+            qDebug() << "Current poll rate:" << device->getPollRate();
+            device->setPollRate(1000);
+            qDebug() << "Changed poll rate:" << device->getPollRate();
         }
 
         foreach (libopenrazer::Led *led, device->getLeds()) {
+            qDebug() << "-----------";
+            QString str = libopenrazer::ledIdToStringTable.value(led->getLedId(), "error");
             if (led->hasFx("brightness")) {
-                qDebug() << "getBrightness";
-                qDebug() << led->getBrightness();
+                qDebug() << "getBrightness:" << led->getBrightness();
             }
-            auto colors = led->getCurrentColors();
-            qDebug() << colors[0].r << colors[0].g << colors[0].b;
+            razer_test::RazerEffect currentEffect = led->getCurrentEffect();
+            QVector<razer_test::RGB> currentColors = led->getCurrentColors();
+
+            qDebug() << "color:" << currentColors[0];
+
+            // Add items from capabilities
+            for (auto ledFx : libopenrazer::ledFxList) {
+                if (led->hasFx(ledFx.getIdentifier())) {
+                    qDebug() << "has effect:" << ledFx.getDisplayString();
+                }
+            }
         }
 
         if (device->hasFeature("kbd_layout")) {
+            qDebug() << "-----------";
             qDebug() << "Keyboard layout:";
             qDebug() << device->getKeyboardLayout();
         }
