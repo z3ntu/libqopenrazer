@@ -257,15 +257,15 @@ bool Device::setDPI(::razer_test::RazerDPI dpi)
     }
 }
 
-bool Device::setDPIStages(QVector<::razer_test::RazerDPI> dpiStages)
+bool Device::setDPIStages(uchar activeStage, QVector<::razer_test::RazerDPI> dpiStages)
 {
-    QDBusReply<void> reply = d->deviceDpiIface()->call("setDPIStages", QVariant::fromValue(dpiStages));
+    QDBusReply<void> reply = d->deviceDpiIface()->call("setDPIStages", QVariant::fromValue(activeStage), QVariant::fromValue(dpiStages));
     return handleVoidDBusReply(reply, Q_FUNC_INFO);
 }
 
-QVector<::razer_test::RazerDPI> Device::getDPIStages()
+QPair<uchar, QVector<::razer_test::RazerDPI>> Device::getDPIStages()
 {
-    QDBusReply<QVector<::razer_test::RazerDPI>> reply = d->deviceDpiIface()->call("getDPIStages");
+    QDBusReply<QPair<uchar, QVector<::razer_test::RazerDPI>>> reply = d->deviceDpiIface()->call("getDPIStages");
     return handleDBusReply(reply, Q_FUNC_INFO);
 }
 

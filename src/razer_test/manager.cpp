@@ -35,6 +35,10 @@ Manager::Manager()
 
     // Register the enums with the Qt system
     ::razer_test::registerMetaTypes();
+
+    // TODO commonize
+    qRegisterMetaType<QPair<uchar, QVector<::razer_test::RazerDPI>>>("QPair<uchar, QVector<RazerDPI>>");
+    qDBusRegisterMetaType<QPair<uchar, QVector<::razer_test::RazerDPI>>>();
 }
 
 bool Manager::isDaemonRunning()

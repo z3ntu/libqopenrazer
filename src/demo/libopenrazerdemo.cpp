@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         if (device->hasFeature("dpi_stages")) {
             qDebug() << "-----------";
             qDebug() << "Current DPI stages:" << device->getDPIStages();
-            device->setDPIStages({ { 400, 500 }, { 600, 700 }, { 800, 900 } });
+            device->setDPIStages(2, { { 400, 500 }, { 600, 700 }, { 800, 900 } });
             qDebug() << "Changed DPI stages:" << device->getDPIStages();
         }
 

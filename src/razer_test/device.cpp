@@ -150,16 +150,16 @@ bool Device::setDPI(::razer_test::RazerDPI dpi)
     return handleDBusReply(reply, Q_FUNC_INFO);
 }
 
-bool Device::setDPIStages(QVector<::razer_test::RazerDPI> dpiStages)
+bool Device::setDPIStages(uchar activeStage, QVector<::razer_test::RazerDPI> dpiStages)
 {
     // TODO
     return false;
 }
 
-QVector<::razer_test::RazerDPI> Device::getDPIStages()
+QPair<uchar, QVector<::razer_test::RazerDPI>> Device::getDPIStages()
 {
     // TODO
-    return QVector<::razer_test::RazerDPI>();
+    return { 0, QVector<::razer_test::RazerDPI>() };
 }
 
 ushort Device::maxDPI()
