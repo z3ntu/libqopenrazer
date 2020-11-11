@@ -184,6 +184,25 @@ QVector<::razer_test::RGB> Led::getCurrentColors()
     }
 }
 
+::razer_test::WaveDirection Led::getWaveDirection()
+{
+    QDBusReply<int> reply;
+    reply = d->ledIface()->call("get" + d->lightingLocationMethod + "WaveDir");
+    if (reply.isValid()) {
+        switch (reply.value()) {
+        case 1:
+            return ::razer_test::WaveDirection::LEFT_TO_RIGHT;
+        case 2:
+            return ::razer_test::WaveDirection::RIGHT_TO_LEFT;
+        default:
+            throw DBusException("error", QString("failed to convert int %1 to WaveDirection").arg(reply.value()));
+        }
+    } else {
+        printDBusError(reply.error(), Q_FUNC_INFO);
+        throw DBusException(reply.error());
+    }
+}
+
 ::razer_test::RazerLedId Led::getLedId()
 {
     return d->ledId;

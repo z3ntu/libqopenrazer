@@ -104,6 +104,11 @@ QVector<::razer_test::RGB> Led::getCurrentColors()
     return handleDBusVariant<QVector<::razer_test::RGB>>(reply, d->ledIface()->lastError(), Q_FUNC_INFO);
 }
 
+::razer_test::WaveDirection Led::getWaveDirection()
+{
+    return ::razer_test::WaveDirection::RIGHT_TO_LEFT; // TODO Needs implementation
+}
+
 ::razer_test::RazerLedId Led::getLedId()
 {
     QVariant reply = d->ledIface()->property("LedId");
